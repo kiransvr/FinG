@@ -116,6 +116,56 @@ Dependency rule:
 - Observability: structured logging, metrics, health checks, tracing
 - Security: OAuth2/JWT, role-based access control, least privilege
 
+## API Error Contract
+
+FinG uses a stable JSON error response shape for validation and business errors.
+
+Response fields:
+- `timestamp`: server timestamp in UTC
+- `status`: HTTP status code
+- `error`: HTTP reason phrase
+- `message`: stable top-level error summary
+- `path`: request path
+- `correlationId`: request correlation placeholder carried in `X-Correlation-Id`
+- `validationErrors`: field-level validation errors when applicable
+
+Validation error example:
+
+```json
+{
+	"timestamp": "2026-06-08T06:30:00Z",
+	"status": 400,
+	"error": "Bad Request",
+	"message": "Validation failed",
+	"path": "/api/v1/borrowers",
+	"correlationId": "test-correlation-id",
+	"validationErrors": [
+		{
+			"field": "fullName",
+			"message": "must not be blank"
+		},
+		{
+			"field": "phoneNumber",
+			"message": "phoneNumber must be 10 to 15 digits"
+		}
+	]
+}
+```
+
+Not-found example:
+
+```json
+{
+	"timestamp": "2026-06-08T06:31:00Z",
+	"status": 404,
+	"error": "Not Found",
+	"message": "Borrower not found: 123e4567-e89b-12d3-a456-426614174000",
+	"path": "/api/v1/borrowers/123e4567-e89b-12d3-a456-426614174000",
+	"correlationId": "lookup-correlation-id",
+	"validationErrors": []
+}
+```
+
 ## NFR Targets (Initial)
 
 - Availability: 99.9% target for API services
